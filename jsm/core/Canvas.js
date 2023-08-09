@@ -73,6 +73,11 @@ export class Canvas extends Serializer {
 			scale: 1,
 			screen: {}
 		};
+		this._position ={
+			x: 0,
+			y: 0,
+			flag: false
+		}
 
 		canvas.className = 'background';
 		frontCanvas.className = 'frontground';
@@ -644,11 +649,26 @@ export class Canvas extends Serializer {
 
 		this._width = width;
 		this._height = height;
-
+	
+		this.reSetPosition()
 		this.update();
 
 		return this;
 
+	}
+	drawLine(p1x, p1y, p2x, p2y, invert, size, colorA, ctx, colorB) {
+		if (!this._position.flag) {
+			this.reSetPosition()
+			this._position.flag = true
+		}
+		const x = this._position.x
+		const y = this._position.y
+		drawLine(p1x - x, p1y - y, p2x - x, p2y - y, invert, size, colorA, ctx, colorB)
+	}
+	reSetPosition() {
+		const {left,top} = this.rect
+		this._position.x = left
+		this._position.y = top
 	}
 
 	select( node = null ) {
@@ -775,7 +795,7 @@ export class Canvas extends Serializer {
 
 		const { dom, zoom, canvas, frontCanvas, frontContext, context, _width, _height, useTransform } = this;
 
-		const domRect = this.rect;
+		// const domRect = this.rect;
 
 		if ( canvas.width !== _width || canvas.height !== _height ) {
 
@@ -892,12 +912,15 @@ export class Canvas extends Serializer {
 					colorB = rioElement.getLIOColor();
 
 				}
-
-				drawLine(
-					aPos.x * zoom, aPos.y * zoom,
+				this.drawLine(aPos.x * zoom, aPos.y * zoom,
 					bPos.x * zoom, bPos.y * zoom,
-					false, 2, colorA || '#ffffff', drawContext, colorB || '#ffffff'
-				);
+					false, 2, colorA || '#ffffff', drawContext, colorB || '#ffffff')
+
+				// drawLine(
+				// 	aPos.x * zoom, aPos.y * zoom,
+				// 	bPos.x * zoom, bPos.y * zoom,
+				// 	false, 2, colorA || '#ffffff', drawContext, colorB || '#ffffff'
+				// );
 
 			} else {
 
@@ -923,12 +946,14 @@ export class Canvas extends Serializer {
 
 					const aPosY = ( aIndex * marginY ) - 1;
 					const bPosY = ( bIndex * marginY ) - 1;
-
-					drawLine(
-						aPos.x * zoom, ( ( aPos.y + aPosY ) - aCenterY ) * zoom,
+					this.drawLine(aPos.x * zoom, ( ( aPos.y + aPosY ) - aCenterY ) * zoom,
 						bPos.x * zoom, ( ( bPos.y + bPosY ) - bCenterY ) * zoom,
-						false, 2, colorA, drawContext, colorB
-					);
+						false, 2, colorA, drawContext, colorB)
+					// drawLine(
+					// 	aPos.x * zoom, ( ( aPos.y + aPosY ) - aCenterY ) * zoom,
+					// 	bPos.x * zoom, ( ( bPos.y + bPosY ) - bCenterY ) * zoom,
+					// 	false, 2, colorA, drawContext, colorB
+					// );
 
 				}
 
@@ -938,7 +963,7 @@ export class Canvas extends Serializer {
 
 		context.globalCompositeOperation = 'destination-in';
 
-		context.fillRect( domRect.x, domRect.y, domRect.width, domRect.height );
+		// context.fillRect( domRect.x, domRect.y, domRect.width, domRect.height );
 
 		if ( dragging !== '' ) {
 
