@@ -665,6 +665,12 @@ export class Canvas extends Serializer {
 		const y = this._position.y
 		drawLine(p1x - x, p1y - y, p2x - x, p2y - y, invert, size, colorA, ctx, colorB)
 	}
+	getBoundingPosition() {
+		if (!this._position.flag) {
+			this.reSetPosition()
+		}
+	  return this._position
+	}
 	reSetPosition() {
 		const {left,top} = this.rect
 		this._position.x = left
