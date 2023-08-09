@@ -668,6 +668,7 @@ export class Canvas extends Serializer {
 	getBoundingPosition() {
 		if (!this._position.flag) {
 			this.reSetPosition()
+			this._position.flag = true
 		}
 	  return this._position
 	}
