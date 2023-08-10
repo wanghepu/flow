@@ -13,11 +13,11 @@ const colors = [
 const dropNode = new Node().add( new TitleElement( 'File' ) ).setWidth( 250 );
 
 export class Canvas extends Serializer {
-
-	constructor() {
+ #showMap
+	constructor(showMap = true) {
 
 		super();
-
+		this.#showMap = showMap
 		const dom = document.createElement( 'f-canvas' );
 		const contentDOM = document.createElement( 'f-content' );
 		const areaDOM = document.createElement( 'f-area' );
@@ -25,11 +25,10 @@ export class Canvas extends Serializer {
 
 		const canvas = document.createElement( 'canvas' );
 		const frontCanvas = document.createElement( 'canvas' );
-		const mapCanvas = document.createElement( 'canvas' );
 
 		const context = canvas.getContext( '2d' );
 		const frontContext = frontCanvas.getContext( '2d' );
-		const mapContext = mapCanvas.getContext( '2d' );
+
 
 		this.dom = dom;
 
@@ -39,11 +38,9 @@ export class Canvas extends Serializer {
 
 		this.canvas = canvas;
 		this.frontCanvas = frontCanvas;
-		this.mapCanvas = mapCanvas;
 
 		this.context = context;
 		this.frontContext = frontContext;
-		this.mapContext = mapContext;
 
 		this.clientX = 0;
 		this.clientY = 0;
@@ -81,7 +78,6 @@ export class Canvas extends Serializer {
 
 		canvas.className = 'background';
 		frontCanvas.className = 'frontground';
-		mapCanvas.className = 'map';
 
 		dropDOM.innerHTML = '<span>drop your file</span>';
 
@@ -90,7 +86,15 @@ export class Canvas extends Serializer {
 		dom.append( frontCanvas );
 		dom.append( contentDOM );
 		dom.append( areaDOM );
-		dom.append( mapCanvas );
+		if (this.#showMap) {
+			const mapCanvas = document.createElement( 'canvas' );
+			const mapContext = mapCanvas.getContext( '2d' );
+			this.mapCanvas = mapCanvas;
+			this.mapContext = mapContext;
+			mapCanvas.className = 'map';
+			dom.append( mapCanvas );
+		}
+		
 		const observe = new IntersectionObserver(mutationRecords => {
 			for (const itemDom of mutationRecords) {
 				if (itemDom.isIntersecting) { // dom 加载在页面
@@ -318,46 +322,48 @@ export class Canvas extends Serializer {
 
 		}, { className: 'dragging-canvas' } );
 
-
-		draggableDOM( mapCanvas, ( data ) => {
-
-			const { scale, screen } = this._mapInfo;
-
-			if ( data.scrollLeft === undefined ) {
-
-				const rect = this.mapCanvas.getBoundingClientRect();
-
-				const clientMapX = data.client.x - rect.left;
-				const clientMapY = data.client.y - rect.top;
-
-				const overMapScreen =
-					clientMapX > screen.x && clientMapY > screen.y &&
-					clientMapX < screen.x + screen.width && clientMapY < screen.y + screen.height;
-
-				if ( overMapScreen === false ) {
-
-					const scaleX = this._mapInfo.width / this.mapCanvas.width;
-
-					let scrollLeft = - this._mapInfo.left - ( clientMapX * scaleX );
-					let scrollTop = - this._mapInfo.top - ( clientMapY * ( this._mapInfo.height / this.mapCanvas.height ) );
-
-					scrollLeft += ( screen.width / 2 ) / scale;
-					scrollTop += ( screen.height / 2 ) / scale;
-
-					this.scrollLeft = scrollLeft;
-					this.scrollTop = scrollTop;
-
+		if (this.#showMap) {
+			draggableDOM( this.mapCanvas, ( data ) => {
+				
+				const { scale, screen } = this._mapInfo;
+				
+				if ( data.scrollLeft === undefined ) {
+					
+					const rect = this.mapCanvas.getBoundingClientRect();
+					
+					const clientMapX = data.client.x - rect.left;
+					const clientMapY = data.client.y - rect.top;
+					
+					const overMapScreen =
+						clientMapX > screen.x && clientMapY > screen.y &&
+						clientMapX < screen.x + screen.width && clientMapY < screen.y + screen.height;
+					
+					if ( overMapScreen === false ) {
+						
+						const scaleX = this._mapInfo.width / this.mapCanvas.width;
+						
+						let scrollLeft = - this._mapInfo.left - ( clientMapX * scaleX );
+						let scrollTop = - this._mapInfo.top - ( clientMapY * ( this._mapInfo.height / this.mapCanvas.height ) );
+						
+						scrollLeft += ( screen.width / 2 ) / scale;
+						scrollTop += ( screen.height / 2 ) / scale;
+						
+						this.scrollLeft = scrollLeft;
+						this.scrollTop = scrollTop;
+						
+					}
+					
+					data.scrollLeft = this.scrollLeft;
+					data.scrollTop = this.scrollTop;
+					
 				}
+				
+				this.scrollLeft = data.scrollLeft - ( data.delta.x / scale );
+				this.scrollTop = data.scrollTop - ( data.delta.y / scale );
+				
+			}, { click: true } );
+		}
 
-				data.scrollLeft = this.scrollLeft;
-				data.scrollTop = this.scrollTop;
-
-			}
-
-			this.scrollLeft = data.scrollLeft - ( data.delta.x / scale );
-			this.scrollTop = data.scrollTop - ( data.delta.y / scale );
-
-		}, { click: true } );
 
 		this._onMoveEvent = ( e ) => {
 
@@ -1001,7 +1007,9 @@ export class Canvas extends Serializer {
 		requestAnimationFrame( this._onUpdate );
 
 		this.updateLines();
-		this.updateMap();
+		if (this.#showMap) {
+			this.updateMap();
+		}
 
 	}
 
