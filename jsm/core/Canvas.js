@@ -91,6 +91,19 @@ export class Canvas extends Serializer {
 		dom.append( contentDOM );
 		dom.append( areaDOM );
 		dom.append( mapCanvas );
+		const observe = new IntersectionObserver(mutationRecords => {
+			for (const itemDom of mutationRecords) {
+				if (itemDom.isIntersecting) { // dom 加载在页面
+					setTimeout(()=>{
+						this.reSetPosition()
+						this._position.flag = true
+					},20)
+					observe.disconnect()
+					break
+				}
+			}
+		})
+		observe.observe(dom)
 
 		const zoomTo = ( zoom, clientX = this.clientX, clientY = this.clientY ) => {
 
@@ -666,10 +679,6 @@ export class Canvas extends Serializer {
 		drawLine(p1x - x, p1y - y, p2x - x, p2y - y, invert, size, colorA, ctx, colorB)
 	}
 	getBoundingPosition() {
-		if (!this._position.flag) {
-			this.reSetPosition()
-			this._position.flag = true
-		}
 	  return this._position
 	}
 	reSetPosition() {
