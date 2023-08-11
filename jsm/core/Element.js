@@ -490,6 +490,7 @@ export class Element extends Serializer {
 					e.stopPropagation();
 
 					this.connect();
+					this.disConnect()
 
 				};
 
@@ -511,6 +512,9 @@ export class Element extends Serializer {
 
 		return true;
 
+	}
+	disConnect() {
+		this.dispatchEvent( new Event( 'disconnect' ) );
 	}
 
 	dispose() {

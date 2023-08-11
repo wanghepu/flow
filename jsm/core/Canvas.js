@@ -600,6 +600,24 @@ export class Canvas extends Serializer {
 		return this;
 
 	}
+	removeShow( node ) {
+		
+		if ( node === this.selected ) {
+			
+			this.select();
+			
+		}
+		
+		
+		const nodes = this.nodes;
+		nodes.splice( nodes.indexOf( node ), 1 );
+		
+		node.canvas = null;
+		
+		this.contentDOM.removeChild( node.dom );
+		return this;
+		
+	}
 
 	clear() {
 
@@ -613,6 +631,19 @@ export class Canvas extends Serializer {
 
 		return this;
 
+	}
+	clearShow() {
+		
+		const nodes = this.nodes;
+		
+		while ( nodes.length > 0 ) {
+			
+			this.removeShow( nodes[ 0 ] );
+			
+		}
+		
+		return this;
+		
 	}
 
 	unlink( node ) {
